@@ -7,4 +7,5 @@ int draw_note(note n, uint64_t time);
 void drawAxes();
 void drawTines();
 void drawThreshold();
+void drawLegend();
 #endif

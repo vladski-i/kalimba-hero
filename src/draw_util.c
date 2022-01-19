@@ -13,7 +13,7 @@ void drawCircle(float cx, float cy, float radius, int num_segments)
 {
     if (cy > threshold)
     {
-        printf("Drawing circle at %.3f, %.3f\n", cx, cy);
+        // printf("Drawing circle at %.3f, %.3f\n", cx, cy);
         glBegin(GL_LINE_LOOP);
         glColor3f(1, 1, 1);
         for (int ii = 0; ii < num_segments; ii++)
@@ -29,8 +29,9 @@ void drawCircle(float cx, float cy, float radius, int num_segments)
     }
 }
 
-int draw_note(note n, uint64_t time)
+int draw_note(note n, const uint64_t time)
 {
+    printf("attempting to draw on lane %d, time is %ld, enter time is %d\n", n.lane, time, n.enter_time);
     if (time > n.enter_time)
     {
         drawCircle(left + n.lane * tine_width + tine_width / 2, right - (1.0f * time - n.enter_time) * note_speed_multiplier, tine_width / 2, 30);
@@ -60,7 +61,7 @@ void drawTines()
     glBegin(GL_LINES);
     glColor3f(1, 1, 1);
     // printf("Starting at %.3f\n, with increment %.3f", right - left, (right - left) / N_TINES);
-    for (float i = left; i < right - 0.1; i += tine_width)
+    for (float i = left; i <= right; i += tine_width)
     {
         // printf("Drawing line with x %.3f\n", i);
         glVertex3f(i, up, 0);
@@ -77,4 +78,22 @@ void drawThreshold()
     glVertex3f(left, -0.8, 0);
     glVertex3f(right, -0.8, 0);
     glEnd();
+}
+
+void drawLegend()
+{
+    int index = 0;
+    for (float i = left; i < right - 0.1; i += tine_width, index++)
+    {
+        if (index % 3 != 2)
+            glColor3f(1.0, 1.0, 1.0);
+        else
+            glColor3f(0.0, 0.0, 1.0);
+
+        // printf("drawing %c at %.3f, %.3f\n", tines[index], left + i * tine_width + tine_width / 2, up);
+        glRasterPos2f(left + index * tine_width + tine_width / 2 - tine_width / 4, up - tine_width / 2);
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, tines[index]);
+        glRasterPos2f(left + index * tine_width + tine_width / 2 - tine_width / 4, down + tine_width / 2);
+        glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, tines[index]);
+    }
 }

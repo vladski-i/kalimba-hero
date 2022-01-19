@@ -23,6 +23,6 @@ extern const float tine_width;
 extern const float threshold;
 extern const float note_speed_multiplier;
 
-extern char tines[17][1];
+extern char tines[17];
 
 #endif

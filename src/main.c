@@ -26,7 +26,12 @@ const float tine_width = (right - left) / N_TINES;
 const float threshold = -0.8;
 const float note_speed_multiplier = 0.01;
 
-char tines[17][1] = {"D", "B", "G", "E", "C", "A", "F", "D", "C", "E", "G", "B", "D", "F", "A", "C", "E"};
+note notes[17];
+
+//Song properties
+const float BPM = 120.0;
+
+char tines[17] = {'D', 'B', 'G', 'E', 'C', 'A', 'F', 'D', 'C', 'E', 'G', 'B', 'D', 'F', 'A', 'C', 'E'};
 
 //clock
 uint64_t time = 0;
@@ -38,18 +43,15 @@ void display()
     // Set every pixel in the frame buffer to the current clear color.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    note n;
-    n.lane = 0;
-    n.enter_time = 0;
+    for(int i =0; i < 17; i ++)
+        draw_note(notes[i], time);
 
-    draw_note(n, time);
 
-    drawAxes();
+    drawLegend();
+    // drawAxes();
     drawTines();
     drawThreshold();
 
-    //draw one circle in the first lane
-    // drawCircle(left + tine_width / 2, up - tine_width / 2, tine_width / 2, 30);
     // Flush drawing command buffer to make drawing happen as soon as possible.
     glFlush();
 }
@@ -76,7 +78,6 @@ void reshape(GLint w, GLint h)
               0.0f, 0.0f, 0.0f,
               0.0f, 1.0f, 0.0f);
 }
-
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
 int main(int argc, char **argv)
@@ -137,7 +138,13 @@ int main(int argc, char **argv)
     glDepthFunc(GL_LEQUAL);
 
     //setup ticking time
+    for(int i = 0; i < 17; i ++){
+        notes[i].enter_time = 30 * i;
+        notes[i].lane = i;
+    }
+    time = 0;
     glutTimerFunc(1000.0 / 60.0, timer, 0);
+
 
     // Tell GLUT to start reading and processing events.  This function
     // never returns; the program only exits when the user closes the main
