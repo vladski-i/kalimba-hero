@@ -11,6 +11,7 @@
 
 #include "constants.h"
 #include "draw_util.h"
+#include "midi_read.h"
 
 // Tines bounding box
 const float left = -1;
@@ -43,9 +44,8 @@ void display()
     // Set every pixel in the frame buffer to the current clear color.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for(int i =0; i < 17; i ++)
+    for (int i = 0; i < 17; i++)
         draw_note(notes[i], time);
-
 
     drawLegend();
     // drawAxes();
@@ -80,7 +80,7 @@ void reshape(GLint w, GLint h)
 }
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
-int main(int argc, char **argv)
+int main2(int argc, char **argv)
 {
 
     // Use a single buffered window in RGB mode (as opposed to a double-buffered
@@ -138,16 +138,22 @@ int main(int argc, char **argv)
     glDepthFunc(GL_LEQUAL);
 
     //setup ticking time
-    for(int i = 0; i < 17; i ++){
+    for (int i = 0; i < 17; i++)
+    {
         notes[i].enter_time = 30 * i;
         notes[i].lane = i;
     }
     time = 0;
     glutTimerFunc(1000.0 / 60.0, timer, 0);
 
-
     // Tell GLUT to start reading and processing events.  This function
     // never returns; the program only exits when the user closes the main
     // window or kills the process.
     glutMainLoop();
+}
+
+int main()
+{
+    read_midi_file("assets/chpn_op27_2.mid");
+    return 0;
 }

@@ -1,0 +1,1 @@
+void read_midi_file(char *path);
