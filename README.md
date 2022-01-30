@@ -1,6 +1,6 @@
 # Kalimba Hero
 
-Is a OpenGL C application aiming to provide a similar experience to Synthesia for kalimba players
+Is an OpenGL C application aiming to provide a similar experience to Synthesia for kalimba players
 
 # Font
 
