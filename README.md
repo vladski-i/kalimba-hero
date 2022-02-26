@@ -2,6 +2,20 @@
 
 Is an OpenGL C application aiming to provide a similar experience to Synthesia for kalimba players
 
-# Font
+# Current status
 
-Font is VCR OSD MONO by Riciery Leal, downloaded [here](https://www.dafont.com/bitmap.php)
+- [x] tight timing
+- [x] reading midif file to get bpm and notes
+- [x] piano debug notes
+- [ ] interface to select midi file
+- [ ] detection of notes played in real life
+- [ ] stopping time when awaiting notes
+- [ ] docker image for building the app
+
+# Building
+
+You need OpenGL, GLUT, GLFW on your system
+
+- cd to /.../kalimba-hero/midi-parser
+- run `make` (so the simlink in `kalimba-hero/lib` resolves)
+- run `make` in kalimba-hero
