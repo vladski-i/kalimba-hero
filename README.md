@@ -5,7 +5,7 @@ Is an OpenGL C application aiming to provide a similar experience to Synthesia f
 # Current status
 
 - [x] tight timing
-- [x] reading midif file to get bpm and notes
+- [x] reading midi file to get bpm and notes
 - [x] piano debug notes
 - [ ] interface to select midi file
 - [ ] detection of notes played in real life
