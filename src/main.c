@@ -1,53 +1,62 @@
-// A simple introductory program; its main window contains a static picture
-// of a triangle, whose three vertices are red, green and blue.  The program
-// illustrates viewing with default viewing parameters only.
-
 #include <GL/glu.h>
 #include <GLFW/glfw3.h>
 #include <GL/glut.h>
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
+#include <assert.h>
+#include <pthread.h>
+#include <sys/time.h>
 
+#define CONSTANTS_IMPL
 #include "constants.h"
 #include "draw_util.h"
 #include "midi_read.h"
 
-// Tines bounding box
-const float left = -1;
-const float right = 1;
-const float up = 1;
-const float down = -1;
+//clock in ms
+uint64_t time_c = 0;
 
-// Tines properties
-const int N_TINES = 17;
-const float tine_width = (right - left) / N_TINES;
+// time of day when program started in usec
+uint64_t start_usec = 0;
 
-//Note properties
-const float threshold = -0.8;
-const float note_speed_multiplier = 0.01;
+//tines
+tine *tines;
 
-note notes[17];
+//array of notes parsed from midi file at startup
+note *notes;
 
-//Song properties
-const float BPM = 120.0;
+//number of notes in above array
+uint32_t notes_no;
 
-char tines[17] = {'D', 'B', 'G', 'E', 'C', 'A', 'F', 'D', 'C', 'E', 'G', 'B', 'D', 'F', 'A', 'C', 'E'};
+//index in the array of notes
+uint32_t note_index = 0;
 
-//clock
-uint64_t time = 0;
-
-// Clears the current window and draws a triangle.
 void display()
 {
 
     // Set every pixel in the frame buffer to the current clear color.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = 0; i < 17; i++)
-        draw_note(notes[i], time);
+    for (int i = note_index; i < notes_no; i++)
+    {
+        note_status status = draw_note(notes[i], time_c);
+        printf("note index %d lane %d enter time_c %d at time_c %.3f status %d\n", i, notes[i].lane, notes[i].enter_time, time_c * tpf, status);
+        static_assert(STATES_NO == 3, "Handle all note statuses in display()");
+        if (status == WAITING)
+        {
+            break;
+        }
+        else if (status == IN_FLIGHT)
+        {
+            ;
+        }
+        else if (status == DONE)
+        {
+            note_index++;
+        }
+    }
 
-    drawLegend();
+    drawLegend(tines);
     // drawAxes();
     drawTines();
     drawThreshold();
@@ -58,8 +67,12 @@ void display()
 
 void timer(int v)
 {
-    time++;
-    printf("time is %ld\n", time);
+    struct timeval current;
+    gettimeofday(&current, NULL);
+    uint64_t current_usec = current.tv_sec * 1000000 + current.tv_usec;
+    time_c = ((current_usec - start_usec) / 1000000.0) * 60;
+    if (time_c % 60 == 0)
+        printf("time_c is %ld\n", time_c);
     glutPostRedisplay();
     glutTimerFunc(1000.0 / 60.0, timer, v);
 }
@@ -80,8 +93,11 @@ void reshape(GLint w, GLint h)
 }
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
-int main2(int argc, char **argv)
+int main(int argc, char **argv)
 {
+    tines = setup_tines();
+    //TODO unhardcode midi file
+    notes = read_midi_file("midi file.mid", &notes_no, &bpm);
 
     // Use a single buffered window in RGB mode (as opposed to a double-buffered
     // window or color-index mode).
@@ -115,8 +131,6 @@ int main2(int argc, char **argv)
 
     glutInitWindowPosition(80, 80);
     glutInitWindowSize(monitor_width, monitor_height);
-    float aspect_ratio = 1.0f * monitor_width / monitor_height;
-    printf("aspect ratio: %.3f", aspect_ratio);
     glutCreateWindow("Kalimba Hero");
 
     // Tell GLUT that whenever the main window needs to be repainted that it
@@ -124,6 +138,7 @@ int main2(int argc, char **argv)
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
 
+    // Setup perspective and lookAt so aspect ratio is preserved when resizing the window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(10.0, (float)monitor_width / (float)monitor_height, 1.0, 150.0);
@@ -138,22 +153,16 @@ int main2(int argc, char **argv)
     glDepthFunc(GL_LEQUAL);
 
     //setup ticking time
-    for (int i = 0; i < 17; i++)
-    {
-        notes[i].enter_time = 30 * i;
-        notes[i].lane = i;
-    }
-    time = 0;
+    time_c = 0;
     glutTimerFunc(1000.0 / 60.0, timer, 0);
+    printf("First note on lane: %d\n", notes[0].lane);
+    printf("C0 lane is %d", C1);
 
-    // Tell GLUT to start reading and processing events.  This function
-    // never returns; the program only exits when the user closes the main
-    // window or kills the process.
+    // get the time in usec right before starting the main loop
+    struct timeval start;
+    gettimeofday(&start, NULL);
+    start_usec = start.tv_sec * 1000000 + start.tv_usec;
+
+    // Start the main loop
     glutMainLoop();
-}
-
-int main()
-{
-    read_midi_file("assets/chpn_op27_2.mid");
-    return 0;
 }
