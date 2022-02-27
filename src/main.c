@@ -12,6 +12,7 @@
 #include "constants.h"
 #include "draw_util.h"
 #include "midi_read.h"
+#include "tui.h"
 
 //clock in ms
 uint64_t time_c = 0;
@@ -95,9 +96,11 @@ void reshape(GLint w, GLint h)
 // enters the main event loop.
 int main(int argc, char **argv)
 {
+    char *midi_file_name = tui();
+    printf("Selected %s \n", midi_file_name);
     tines = setup_tines();
     //TODO unhardcode midi file
-    notes = read_midi_file("midi file.mid", &notes_no, &bpm);
+    notes = read_midi_file(midi_file_name, &notes_no, &bpm);
 
     // Use a single buffered window in RGB mode (as opposed to a double-buffered
     // window or color-index mode).
@@ -164,5 +167,5 @@ int main(int argc, char **argv)
     start_usec = start.tv_sec * 1000000 + start.tv_usec;
 
     // Start the main loop
-    glutMainLoop();
+    // glutMainLoop();
 }
