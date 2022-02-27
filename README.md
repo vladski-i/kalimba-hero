@@ -11,6 +11,7 @@ Is an OpenGL C application aiming to provide a similar experience to Synthesia f
 - [ ] detection of notes played in real life
 - [ ] stopping time when awaiting notes
 - [ ] docker image for building the app
+- [ ] own midi parser
 
 # Building
 
