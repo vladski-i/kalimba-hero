@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "constants.h"
 #include "midi_parser.h"
@@ -9,6 +10,20 @@
 // TODO unhardcode track number
 #define TRACK_NO 0
 #define START_DELAY 100
+
+MidiParser *copy(MidiParser *parser) {
+    MidiParser *new_parser = calloc(1, sizeof(MidiParser *));
+    new_parser->format = parser->format;
+    new_parser->fps = parser->fps;
+    new_parser->nbOfNotes = parser->nbOfNotes;
+    new_parser->nbOfTracks = parser->nbOfTracks;
+    new_parser->ticks = parser->ticks;
+    new_parser->tracks = calloc(parser->nbOfTracks, sizeof(Track));
+    memcpy(new_parser->tracks, parser->tracks,
+           parser->nbOfTracks * sizeof(Track));
+    return new_parser;
+    // new_parser->tracks = parser->tracks;
+}
 
 note *parser_to_interpreter_note(Note parser_note) {
     if (parser_note.velocity == 0) return NULL;
@@ -26,7 +41,9 @@ note *parser_to_interpreter_note(Note parser_note) {
 }
 
 // notes_no returned by side efect
-note *read_midi_file(char *path, uint32_t *notes_no) {
+note *read_midi_file(char *path, uint32_t track_no, uint32_t *notes_no) {
+    printf("Track number %d\n", track_no);
+
     MidiParser *parser = parseMidi(path, false, true);
     if (!parser) {
         fprintf(stderr, "failed to parse midi file %s\n", path);
@@ -44,7 +61,7 @@ note *read_midi_file(char *path, uint32_t *notes_no) {
     }
     printf("us_per_quarter: %d\n", us_per_quarter);
     printf("Ticks: %d\n", (int)parser->ticks);
-    Track *track = parser->tracks + TRACK_NO;
+    Track *track = parser->tracks + track_no;
     printf("notes: %d\n", track->nbOfNotes);
     *notes_no = track->nbOfNotes;
 

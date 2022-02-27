@@ -84,11 +84,16 @@ void reshape(GLint w, GLint h) {
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
 int main(int argc, char **argv) {
-    char *midi_file_name = tui();
-    printf("Selected %s \n", midi_file_name);
+    uint32_t track_number = 0;
+    char *midi_file_name = tui(&track_number);
+    if (!midi_file_name) {
+        fprintf(stderr, "failed to select file");
+        exit(1);
+    }
+    printf("Selected %s track %p\n", midi_file_name, &track_number);
     tines = setup_tines();
     // TODO unhardcode midi file
-    notes = read_midi_file(midi_file_name, &notes_no, &bpm);
+    notes = read_midi_file(midi_file_name, track_number, &notes_no, &bpm);
 
     // Use a single buffered window in RGB mode (as opposed to a double-buffered
     // window or color-index mode).
@@ -151,5 +156,5 @@ int main(int argc, char **argv) {
     start_usec = start.tv_sec * 1000000 + start.tv_usec;
 
     // Start the main loop
-    // glutMainLoop();
+    glutMainLoop();
 }
