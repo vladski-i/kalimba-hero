@@ -2,3 +2,4 @@ obj/**
 khero
 .vscode
 out.log
+assets/midi/*
