@@ -1,11 +1,11 @@
 CC=gcc
-CFLAGS=-lGL -lglut -lGLU -L/usr/local/lib -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -I./include/ -L ./lib/
+CFLAGS=-lGL -lglut -lGLU -L/usr/local/lib -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lncurses -I./include/ -L ./lib/
 
-_DEPS = main.c draw_util.c midi_read.c
+_DEPS = main.c draw_util.c midi_read.c tui.c
 DEPS = $(patsubst %,$(DDIR)/%,$(_DEPS))
 DDIR = src
 
-_OBJ = main.o draw_util.o midi_read.o
+_OBJ = main.o draw_util.o midi_read.o tui.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 ODIR = obj
 
