@@ -32,6 +32,11 @@ note *parser_to_interpreter_note(Note parser_note)
 note *read_midi_file(char *path, uint32_t *notes_no)
 {
     MidiParser *parser = parseMidi(path, false, true);
+    if (!parser)
+    {
+        fprintf(stderr, "failed to parse midi file %s\n", path);
+        exit(1);
+    }
     printf("Nb of tracks %d\n", parser->nbOfTracks);
     uint32_t us_per_quarter = 0;
     for (uint8_t i = 0; i < parser->nbOfTracks; i++)
