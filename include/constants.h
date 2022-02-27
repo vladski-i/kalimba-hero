@@ -5,6 +5,9 @@
 
 #define N_TINES 17
 
+//TODO unhardcode midi directory
+#define MIDI_DIR "./assets/midi/"
+
 typedef struct s_note
 {
     int lane;
