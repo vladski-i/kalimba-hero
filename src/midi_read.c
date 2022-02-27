@@ -1,24 +1,21 @@
-#include "midi_parser.h"
-#include "constants.h"
-#include <stdio.h>
-#include <stdint.h>
 #include <math.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+
+#include "constants.h"
+#include "midi_parser.h"
 
 // TODO unhardcode track number
 #define TRACK_NO 0
 #define START_DELAY 100
 
-note *parser_to_interpreter_note(Note parser_note)
-{
-    if (parser_note.velocity == 0)
-        return NULL;
+note *parser_to_interpreter_note(Note parser_note) {
+    if (parser_note.velocity == 0) return NULL;
     note *n = malloc(sizeof(note));
     n->enter_time = parser_note.timeBeforeAppear;
-    for (uint8_t lane = 0; lane <= N_TINES; lane++)
-    {
-        if (pitch_lookup[lane] == parser_note.pitch)
-        {
+    for (uint8_t lane = 0; lane <= N_TINES; lane++) {
+        if (pitch_lookup[lane] == parser_note.pitch) {
             n->lane = lane;
             printf("Found note on lane %d\n", n->lane);
             return n;
@@ -29,23 +26,18 @@ note *parser_to_interpreter_note(Note parser_note)
 }
 
 // notes_no returned by side efect
-note *read_midi_file(char *path, uint32_t *notes_no)
-{
+note *read_midi_file(char *path, uint32_t *notes_no) {
     MidiParser *parser = parseMidi(path, false, true);
-    if (!parser)
-    {
+    if (!parser) {
         fprintf(stderr, "failed to parse midi file %s\n", path);
         exit(1);
     }
     printf("Nb of tracks %d\n", parser->nbOfTracks);
     uint32_t us_per_quarter = 0;
-    for (uint8_t i = 0; i < parser->nbOfTracks; i++)
-    {
+    for (uint8_t i = 0; i < parser->nbOfTracks; i++) {
         Track *track = parser->tracks + i;
-        for (uint32_t j = 0; j < track->nbOfEvents; j++)
-        {
-            if (track->events[j].type == MidiTempoChanged)
-            {
+        for (uint32_t j = 0; j < track->nbOfEvents; j++) {
+            if (track->events[j].type == MidiTempoChanged) {
                 us_per_quarter = *(int *)track->events[j].infos;
             }
         }
@@ -58,12 +50,9 @@ note *read_midi_file(char *path, uint32_t *notes_no)
 
     note *filtered = calloc(*notes_no, sizeof(note));
     uint32_t idx = 0;
-    for (uint32_t i = 0; i < *notes_no; i++)
-    {
-
+    for (uint32_t i = 0; i < *notes_no; i++) {
         note *n = parser_to_interpreter_note(track->notes[i]);
-        if (n)
-        {
+        if (n) {
             filtered[idx++] = *n;
         }
     }

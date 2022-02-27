@@ -1,11 +1,11 @@
 #include <GL/glu.h>
-#include <GLFW/glfw3.h>
 #include <GL/glut.h>
-#include <stdio.h>
-#include <math.h>
-#include <stdint.h>
+#include <GLFW/glfw3.h>
 #include <assert.h>
+#include <math.h>
 #include <pthread.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <sys/time.h>
 
 #define CONSTANTS_IMPL
@@ -14,45 +14,39 @@
 #include "midi_read.h"
 #include "tui.h"
 
-//clock in ms
+// clock in ms
 uint64_t time_c = 0;
 
 // time of day when program started in usec
 uint64_t start_usec = 0;
 
-//tines
+// tines
 tine *tines;
 
-//array of notes parsed from midi file at startup
+// array of notes parsed from midi file at startup
 note *notes;
 
-//number of notes in above array
+// number of notes in above array
 uint32_t notes_no;
 
-//index in the array of notes
+// index in the array of notes
 uint32_t note_index = 0;
 
-void display()
-{
-
+void display() {
     // Set every pixel in the frame buffer to the current clear color.
     glClear(GL_COLOR_BUFFER_BIT);
 
-    for (int i = note_index; i < notes_no; i++)
-    {
+    for (int i = note_index; i < notes_no; i++) {
         note_status status = draw_note(notes[i], time_c);
-        printf("note index %d lane %d enter time_c %d at time_c %.3f status %d\n", i, notes[i].lane, notes[i].enter_time, time_c * tpf, status);
+        printf(
+            "note index %d lane %d enter time_c %d at time_c %.3f status %d\n",
+            i, notes[i].lane, notes[i].enter_time, time_c * tpf, status);
         static_assert(STATES_NO == 3, "Handle all note statuses in display()");
-        if (status == WAITING)
-        {
+        if (status == WAITING) {
             break;
-        }
-        else if (status == IN_FLIGHT)
-        {
+        } else if (status == IN_FLIGHT) {
             ;
-        }
-        else if (status == DONE)
-        {
+        } else if (status == DONE) {
             note_index++;
         }
     }
@@ -66,20 +60,17 @@ void display()
     glFlush();
 }
 
-void timer(int v)
-{
+void timer(int v) {
     struct timeval current;
     gettimeofday(&current, NULL);
     uint64_t current_usec = current.tv_sec * 1000000 + current.tv_usec;
     time_c = ((current_usec - start_usec) / 1000000.0) * 60;
-    if (time_c % 60 == 0)
-        printf("time_c is %ld\n", time_c);
+    if (time_c % 60 == 0) printf("time_c is %ld\n", time_c);
     glutPostRedisplay();
     glutTimerFunc(1000.0 / 60.0, timer, v);
 }
 
-void reshape(GLint w, GLint h)
-{
+void reshape(GLint w, GLint h) {
     glViewport(0, 0, w, h);
     GLfloat aspect = (GLfloat)w / (GLfloat)h;
     glMatrixMode(GL_PROJECTION);
@@ -88,18 +79,15 @@ void reshape(GLint w, GLint h)
     // Must be in GL_MODELVIEW mode and load identity first
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(0.0f, 0.0f, 4.0f,
-              0.0f, 0.0f, 0.0f,
-              0.0f, 1.0f, 0.0f);
+    gluLookAt(0.0f, 0.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 }
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
     char *midi_file_name = tui();
     printf("Selected %s \n", midi_file_name);
     tines = setup_tines();
-    //TODO unhardcode midi file
+    // TODO unhardcode midi file
     notes = read_midi_file(midi_file_name, &notes_no, &bpm);
 
     // Use a single buffered window in RGB mode (as opposed to a double-buffered
@@ -112,17 +100,13 @@ int main(int argc, char **argv)
     int monitor_height = 0;
     int monitor_width = 0;
     GLFWmonitor **monitors = glfwGetMonitors(&count);
-    if (monitors == NULL)
-    {
+    if (monitors == NULL) {
         printf("Null monitors");
         const char *description;
         int code = glfwGetError(&description);
 
-        if (description)
-            printf("%d %s\n", code, description);
-    }
-    else
-    {
+        if (description) printf("%d %s\n", code, description);
+    } else {
         const GLFWvidmode const *mode = glfwGetVideoMode(monitors[0]);
         printf("%d x %d", mode->height, mode->width);
         monitor_height = mode->height;
@@ -141,21 +125,21 @@ int main(int argc, char **argv)
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
 
-    // Setup perspective and lookAt so aspect ratio is preserved when resizing the window
+    // Setup perspective and lookAt so aspect ratio is preserved when resizing
+    // the window
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(10.0, (float)monitor_width / (float)monitor_height, 1.0, 150.0);
+    gluPerspective(10.0, (float)monitor_width / (float)monitor_height, 1.0,
+                   150.0);
 
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    gluLookAt(1.0f, 1.0f, 4.0f,
-              0.0f, 0.0f, 0.0f,
-              0.0f, 1.0f, 0.0f);
+    gluLookAt(1.0f, 1.0f, 4.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 
-    //setup ticking time
+    // setup ticking time
     time_c = 0;
     glutTimerFunc(1000.0 / 60.0, timer, 0);
     printf("First note on lane: %d\n", notes[0].lane);
