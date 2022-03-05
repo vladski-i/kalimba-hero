@@ -18,11 +18,10 @@ void end_mem() {
 
 static void check_realloc() {
     if (current_index >= current_size) {
-        printf("[mem] reallocation, index %d, size from %d\n", current_index,
-               current_size);
+        printf("[mem] reallocation, size from %d to %d\n", current_size,
+               current_size * 2);
         void **backup = ptrs;
         ptrs = realloc(ptrs, current_size * 2 * sizeof(void *));
-        printf("[mem] backup %p, ptrs %p\n", backup, ptrs);
         if (!ptrs) {
             ptrs = backup;
             end_mem();
