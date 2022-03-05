@@ -77,7 +77,6 @@ note *read_midi_file(char *path, uint32_t track_no, uint32_t *notes_no) {
     printf("First note string is %s\n", getNoteString(track->notes[0].pitch));
     *notes_no = idx;
     printf("Found %d playable notes\n", idx);
-    uint32_t first_note_enter = track->notes->timeBeforeAppear;
     bpm = (int)ceil(60 * 1000 * 1000.0f / us_per_quarter);
     printf("BPM: %d\n", bpm);
     tpf = ((bpm * 1.0f) / 60.0 * parser->ticks) / 60.0;

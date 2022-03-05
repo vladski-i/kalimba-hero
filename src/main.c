@@ -72,7 +72,6 @@ void timer(int v) {
 
 void reshape(GLint w, GLint h) {
     glViewport(0, 0, w, h);
-    GLfloat aspect = (GLfloat)w / (GLfloat)h;
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective(30.0, (float)w / (float)h, 1.0, 150.0);
@@ -90,7 +89,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "failed to select file");
         exit(1);
     }
-    printf("Selected %s track %p\n", midi_file_name, &track_number);
+    printf("Selected %s track %p\n", midi_file_name, (void *)&track_number);
     tines = setup_tines();
     // TODO unhardcode midi file
     notes = read_midi_file(midi_file_name, track_number, &notes_no, &bpm);
@@ -112,7 +111,7 @@ int main(int argc, char **argv) {
 
         if (description) printf("%d %s\n", code, description);
     } else {
-        const GLFWvidmode const *mode = glfwGetVideoMode(monitors[0]);
+        const GLFWvidmode *mode = glfwGetVideoMode(monitors[0]);
         printf("%d x %d", mode->height, mode->width);
         monitor_height = mode->height;
         monitor_width = mode->width;

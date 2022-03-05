@@ -12,7 +12,7 @@
 
 // TODO unhardcode max midi files
 static const int max_midi_files = 100;
-static const char const *midi_suffix = ".mid";
+static const char *midi_suffix = ".mid";
 static const int midi_suffix_len = 4;
 
 typedef enum selection_e { MIDI_FILE, TRACK, SELECTIONS_NO } selection;
@@ -34,7 +34,7 @@ static char **get_midi_files(int *len) {
     dp = opendir(MIDI_DIR);
 
     if (dp != NULL) {
-        while (ep = readdir(dp)) {
+        while ((ep = readdir(dp))) {
             if (!strcmp(ep->d_name + strlen(ep->d_name) - midi_suffix_len,
                         midi_suffix))
                 file_names[idx++] = strdup(ep->d_name);
@@ -59,17 +59,16 @@ char *tui(uint32_t *track_number) {
     for (int i = 0; i < files_no; i++) {
         MidiParser *parser =
             copy(parseMidi(qualify_midi_path(midi_files[i]), false, false));
-        printf("%p -> %d\n", parser, parser->nbOfTracks);
+        printf("%p -> %d\n", (void *)parser, parser->nbOfTracks);
         *(parsed_files + i) = parser;
     }
     printf("%s vs %s vs %p\n", parsed_files[0]->tracks[1].name,
-           parsed_files[1]->tracks[1].name, parsed_files);
+           parsed_files[1]->tracks[1].name, (void *)parsed_files);
     initscr();
     noecho();
     cbreak();
 
-    int ymax, xmax;
-    getmaxyx(stdscr, ymax, xmax);
+    int xmax = getmaxx(stdscr);
 
     WINDOW *filewin = newwin(files_no + 3, xmax - 12, 8, 5);
     WINDOW *trackwin = newwin(20, xmax - 12, 8 + files_no + 5, 5);
