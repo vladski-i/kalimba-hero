@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "constants.h"
+#include "mem.h"
 #include "midi_parser.h"
 
 // TODO unhardcode track number
@@ -12,27 +13,26 @@
 #define START_DELAY 100
 
 MidiParser *copy(MidiParser *parser) {
-    MidiParser *new_parser = calloc(1, sizeof(MidiParser *));
+    MidiParser *new_parser = alloc(1, sizeof(MidiParser));
     new_parser->format = parser->format;
     new_parser->fps = parser->fps;
     new_parser->nbOfNotes = parser->nbOfNotes;
     new_parser->nbOfTracks = parser->nbOfTracks;
     new_parser->ticks = parser->ticks;
-    new_parser->tracks = calloc(parser->nbOfTracks, sizeof(Track));
+    new_parser->tracks = alloc(parser->nbOfTracks, sizeof(Track));
     memcpy(new_parser->tracks, parser->tracks,
            parser->nbOfTracks * sizeof(Track));
     return new_parser;
-    // new_parser->tracks = parser->tracks;
 }
 
 note *parser_to_interpreter_note(Note parser_note) {
     if (parser_note.velocity == 0) return NULL;
-    note *n = malloc(sizeof(note));
+    note *n = alloc(1, sizeof(note));
     n->enter_time = parser_note.timeBeforeAppear;
     for (uint8_t lane = 0; lane <= N_TINES; lane++) {
         if (pitch_lookup[lane] == parser_note.pitch) {
             n->lane = lane;
-            printf("Found note on lane %d\n", n->lane);
+            // printf("Found note on lane %d\n", n->lane);
             return n;
         }
     }
@@ -65,7 +65,7 @@ note *read_midi_file(char *path, uint32_t track_no, uint32_t *notes_no) {
     printf("notes: %d\n", track->nbOfNotes);
     *notes_no = track->nbOfNotes;
 
-    note *filtered = calloc(*notes_no, sizeof(note));
+    note *filtered = (note *)alloc(*notes_no, sizeof(note));
     uint32_t idx = 0;
     for (uint32_t i = 0; i < *notes_no; i++) {
         note *n = parser_to_interpreter_note(track->notes[i]);

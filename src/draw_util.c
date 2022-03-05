@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "constants.h"
+#include "mem.h"
 #include "midi_parser.h"
 #include "midi_read.h"
 
@@ -104,7 +105,7 @@ void drawLegend(tine *tines) {
 
 // Creates the array of tines, in the order they would be seen on the kalimba
 tine *setup_tines() {
-    tine *tines = malloc(sizeof(tine) * N_TINES);
+    tine *tines = alloc(N_TINES, sizeof(tine));
     if (tines == NULL) {
         fprintf(stderr, "Unable to allocate memory for array of pitches");
         exit(1);

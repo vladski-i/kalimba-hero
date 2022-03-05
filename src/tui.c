@@ -7,6 +7,7 @@
 #include <sys/types.h>
 
 #include "constants.h"
+#include "mem.h"
 #include "midi_parser.h"
 #include "midi_read.h"
 
@@ -19,7 +20,7 @@ typedef enum selection_e { MIDI_FILE, TRACK, SELECTIONS_NO } selection;
 
 static char *qualify_midi_path(char *filename) {
     char *qualified_path =
-        calloc(strlen(filename) + strlen(MIDI_DIR), sizeof(char));
+        (char *)alloc(strlen(filename) + strlen(MIDI_DIR) + 1, sizeof(char));
     sprintf(qualified_path, "%s%s", MIDI_DIR, filename);
     printf("Qualified path to %s\n", qualified_path);
     return qualified_path;
@@ -28,7 +29,7 @@ static char *qualify_midi_path(char *filename) {
 static char **get_midi_files(int *len) {
     assert(strlen(midi_suffix) == midi_suffix_len);
     DIR *dp;
-    char **file_names = calloc(max_midi_files, sizeof(char *));
+    char **file_names = alloc(max_midi_files, sizeof(char *));
     uint8_t idx = 0;
     struct dirent *ep;
     dp = opendir(MIDI_DIR);
@@ -37,7 +38,7 @@ static char **get_midi_files(int *len) {
         while ((ep = readdir(dp))) {
             if (!strcmp(ep->d_name + strlen(ep->d_name) - midi_suffix_len,
                         midi_suffix))
-                file_names[idx++] = strdup(ep->d_name);
+                file_names[idx++] = strdup_m(ep->d_name);
         }
         closedir(dp);
     } else {
@@ -55,7 +56,7 @@ char *tui(uint32_t *track_number) {
     static char *unnamed_track = "Unnamed track";
     int files_no = 0;
     char **midi_files = get_midi_files(&files_no);
-    MidiParser **parsed_files = calloc(files_no, sizeof(MidiParser *));
+    MidiParser **parsed_files = alloc(files_no, sizeof(MidiParser *));
     for (int i = 0; i < files_no; i++) {
         MidiParser *parser =
             copy(parseMidi(qualify_midi_path(midi_files[i]), false, false));

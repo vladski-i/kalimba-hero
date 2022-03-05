@@ -1,3 +1,4 @@
+#include <GL/freeglut.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <GLFW/glfw3.h>
@@ -11,6 +12,7 @@
 #define CONSTANTS_IMPL
 #include "constants.h"
 #include "draw_util.h"
+#include "mem.h"
 #include "midi_read.h"
 #include "tui.h"
 
@@ -38,9 +40,10 @@ void display() {
 
     for (int i = note_index; i < notes_no; i++) {
         note_status status = draw_note(notes[i], time_c);
-        printf(
-            "note index %d lane %d enter time_c %d at time_c %.3f status %d\n",
-            i, notes[i].lane, notes[i].enter_time, time_c * tpf, status);
+        // printf(
+        //     "note index %d lane %d enter time_c %d at time_c %.3f status
+        //     %d\n", i, notes[i].lane, notes[i].enter_time, time_c * tpf,
+        //     status);
         static_assert(STATES_NO == 3, "Handle all note statuses in display()");
         if (status == WAITING) {
             break;
@@ -83,6 +86,7 @@ void reshape(GLint w, GLint h) {
 // Initializes GLUT, the display mode, and main window; registers callbacks;
 // enters the main event loop.
 int main(int argc, char **argv) {
+    init_mem();
     uint32_t track_number = 0;
     char *midi_file_name = tui(&track_number);
     if (!midi_file_name) {
@@ -123,6 +127,7 @@ int main(int argc, char **argv) {
     glutInitWindowPosition(80, 80);
     glutInitWindowSize(monitor_width, monitor_height);
     glutCreateWindow("Kalimba Hero");
+    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_CONTINUE_EXECUTION);
 
     // Tell GLUT that whenever the main window needs to be repainted that it
     // should call the function display().
@@ -156,4 +161,6 @@ int main(int argc, char **argv) {
 
     // Start the main loop
     glutMainLoop();
+    printf("Main loop ended\n");
+    end_mem();
 }
