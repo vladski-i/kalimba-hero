@@ -4,6 +4,7 @@ Is an OpenGL C application aiming to provide a similar experience to Synthesia f
 
 # Current status
 
+- [x] minimal UI
 - [x] tight timing
 - [x] reading midi file to get bpm and notes
 - [x] piano debug mode
@@ -12,6 +13,9 @@ Is an OpenGL C application aiming to provide a similar experience to Synthesia f
 - [ ] stopping time when awaiting notes
 - [ ] docker image for building the app
 - [ ] own midi parser
+- [ ] prettier UI
+- [ ] pretty GUI for selecting midi file/track
+- [ ] (maybe) send notes from other tracks via midi ports
 
 # Building
 
