@@ -15,7 +15,7 @@ Is an OpenGL C application aiming to provide a similar experience to Synthesia f
 
 # Building
 
-You need OpenGL, GLUT, GLFW on your system
+You need OpenGL, GLUT, GLFW and `libjack-jackd2-dev` on your system
 
 - cd to /.../kalimba-hero/midi-parser
 - run `make` (so the simlink in `kalimba-hero/lib` resolves)
