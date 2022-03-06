@@ -13,7 +13,7 @@
 #include "midi_parser.h"
 #include "midi_read.h"
 
-extern uint64_t time_c;
+extern uint64_t time_in_frames;
 
 static note_status drawCircle(float cx, float cy, float radius,
                               int num_segments) {
@@ -35,12 +35,12 @@ static note_status drawCircle(float cx, float cy, float radius,
     return DONE;
 }
 
-note_status draw_note(note n, const uint64_t time_c) {
-    if (time_c * tpf > n.enter_time) {
-        return drawCircle(
-            left + n.lane * tine_width + tine_width / 2,
-            up - (1.0f * time_c - (n.enter_time / tpf)) * note_speed_multiplier,
-            tine_width / 2, 30);
+note_status draw_note(note n, const uint64_t time_in_frames) {
+    if (time_in_frames * tpf > n.enter_time) {
+        return drawCircle(left + n.lane * tine_width + tine_width / 2,
+                          up - (1.0f * time_in_frames - (n.enter_time / tpf)) *
+                                   note_speed_multiplier,
+                          tine_width / 2, 30);
     }
     return WAITING;
 }
@@ -117,4 +117,15 @@ tine *setup_tines() {
         tines[i].pitch = pitch_lookup[i];
     }
     return tines;
+}
+
+void draw_current_notes(pitch *notes, uint32_t notes_no) {
+    glColor3f(1, 0, 0);
+    for (uint i = 0; i < notes_no; i++) {
+        double x1 = left + notes[i] * tine_width;
+        double x2 = left + (notes[i] + 1) * tine_width;
+        double y1 = threshold;
+        double y2 = threshold + tine_width;
+        glRectd(x1, y1, x2, y2);
+    }
 }
