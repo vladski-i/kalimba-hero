@@ -2,6 +2,7 @@
 #include <jack/types.h>
 #include <math.h>
 
+// TODO: implement fft
 void dft(jack_nframes_t nframes, jack_default_audio_sample_t *indata,
          jack_default_audio_sample_t *outdata) {
   for (uint32_t k = 0; k < nframes; k++) {
