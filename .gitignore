@@ -3,3 +3,6 @@ khero
 .vscode
 out.log
 assets/midi/*
+data.txt
+dft
+test
