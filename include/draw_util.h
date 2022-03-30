@@ -10,4 +10,5 @@ void drawThreshold();
 void drawLegend(tine *tines);
 void draw_current_notes(pitch *notes, uint32_t notes_no);
 tine *setup_tines();
+void draw_audio(float *samples, uint32_t samples_no);
 #endif
