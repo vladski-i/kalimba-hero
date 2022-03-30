@@ -113,6 +113,8 @@ float *engine_poll_data(uint32_t *samples_no) {
                                              WINSIZE * sizeof(float));
   if (bytes_read % sizeof(float)) {
     fprintf(stderr, "Trailing bytes in the audio ringbuffer!\n");
+    return NULL; // skip drawing for the frame if trailing bytes are detected;
+                 // may lead to issues
   }
   *samples_no = bytes_read / sizeof(float);
   return bytes;
