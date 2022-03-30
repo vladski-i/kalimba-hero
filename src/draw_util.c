@@ -1,5 +1,6 @@
 #include "draw_util.h"
 
+#include <GL/gl.h>
 #include <GL/glu.h>
 #include <GL/glut.h>
 #include <GLFW/glfw3.h>
@@ -130,6 +131,37 @@ void draw_current_notes(pitch *notes, uint32_t notes_no) {
 
 void draw_audio(float *samples, uint32_t samples_no) {
   glColor3f(1, 0, 0);
+
+  float top_left = -1.97;
+  float top_right = -1.03;
+  float bottom = 0;
+  //   glRectf(top_left, up, top_right, 0);
+  float line_width = (top_right - top_left) / samples_no;
+  glBegin(GL_LINES);
+  // glVertex3f(top_left, up, 0);
+  // glVertex3f(top_right, up, 0);
+
+  // glVertex3f(top_right, up, 0);
+  // glVertex3f(top_right, bottom, 0);
+
+  glVertex3f(top_right, bottom, 0);
+  glVertex3f(top_left, bottom, 0);
+
+  //   glVertex3f(top_left, bottom, 0);
+  //   glVertex3f(top_left, up, 0);
+  glEnd();
+
+  glColor3f(1, 0, 0);
+  for (uint i = 0; i < samples_no; i++) {
+    if (samples[i] * 10 > 1) // clamp values to 1
+      samples[i] = 0.1;
+    glBegin(GL_LINES);
+    // printf("Drawing line : %.3f  %.3f %.3f\n", 1.0f * i * line_width,
+    //        bottom + samples[i] * 10, 0.0);
+    glVertex3f(top_left + 1.0f * i * line_width, bottom, 0.0);
+    glVertex3f(top_left + 1.0f * i * line_width, bottom + samples[i] * 10, 0.0);
+    glEnd();
+  }
 
   return;
 }
