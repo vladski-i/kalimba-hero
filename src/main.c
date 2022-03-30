@@ -35,6 +35,9 @@ uint32_t notes_no;
 // index in the array of notes
 uint32_t note_index = 0;
 
+float *old_audio;
+uint32_t old_samples_no;
+
 void display() {
   // Set every pixel in the frame buffer to the current clear color.
   glClear(GL_COLOR_BUFFER_BIT);
@@ -56,6 +59,15 @@ void display() {
   pitch *notes = engine_poll_notes(&notes_no);
   float *audio_data = engine_poll_data(&samples_no);
   draw_current_notes(notes, notes_no);
+  if (audio_data) {
+    if (samples_no == 0)
+      draw_audio(old_audio, old_samples_no);
+    else {
+      draw_audio(audio_data, samples_no);
+      old_audio = audio_data;
+      old_samples_no = samples_no;
+    }
+  }
   // draw supporting infrastructure
   drawTines();
   drawLegend(tines);
