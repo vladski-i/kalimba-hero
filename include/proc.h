@@ -1,9 +1,13 @@
 #ifndef __PROC_H
 #define __PROC_H
 
-#include <jack/types.h>
+#include <stdint.h>
 
-void dft(jack_nframes_t nframes, jack_default_audio_sample_t *indata,
-         jack_default_audio_sample_t *outdata);
+void dft(uint32_t nframes, float *indata, float *outdata);
+
+typedef enum fft_dir {
+  FFT_FORWARD, /* kernel uses "-1" sign */
+  FFT_INVERSE  /* kernel uses "+1" sign */
+} fft_dir;
 
 #endif
