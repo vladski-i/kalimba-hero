@@ -7,14 +7,17 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <sys/time.h>
 
 #define CONSTANTS_IMPL
 #include "constants.h"
 #include "draw_util.h"
 #include "engine.h"
+#include "kiss_fft.h"
 #include "mem.h"
 #include "midi_read.h"
+#include "proc.h"
 #include "tui.h"
 
 // clock in ms
@@ -38,7 +41,10 @@ uint32_t note_index = 0;
 float *old_audio;
 uint32_t old_samples_no;
 
+kiss_fft_cfg cfg;
+
 void display() {
+  // printf("display()\n");
   // Set every pixel in the frame buffer to the current clear color.
   glClear(GL_COLOR_BUFFER_BIT);
 
@@ -59,15 +65,30 @@ void display() {
   pitch *notes = engine_poll_notes(&notes_no);
   float *audio_data = engine_poll_data(&samples_no);
   draw_current_notes(notes, notes_no);
+  float *drawable_audio = NULL;
+  float drawable_sample_count = 0;
   if (audio_data) {
-    if (samples_no == 0)
-      draw_audio(old_audio, old_samples_no);
-    else {
-      draw_audio(audio_data, samples_no);
+    if (samples_no == 0) {
+      drawable_audio = old_audio;
+      drawable_sample_count = old_samples_no;
+    } else {
+      drawable_audio = audio_data;
+      drawable_sample_count = samples_no;
       old_audio = audio_data;
       old_samples_no = samples_no;
     }
   }
+  if (drawable_audio) {
+    kiss_fft_cpx *time_samples = alloc(1024, sizeof(kiss_fft_cpx));
+    kiss_fft_cpx *spectrum = alloc(1024, sizeof(kiss_fft_cpx));
+    for (uint i = 0; i < drawable_sample_count; i++)
+      time_samples[i].r =
+          drawable_audio[i] * (0.54 - 0.46 * cos((2.0f * M_PI * i) / 1023));
+    kiss_fft(cfg, time_samples, spectrum);
+    kiss_log_scale_boxed_graph(spectrum, drawable_sample_count / 2, -1.97, -1.03, -1, -1);
+  }
+  boxed_graph(drawable_audio, drawable_sample_count, -1.97, -1.03, -1, 0);
+
   // draw supporting infrastructure
   drawTines();
   drawLegend(tines);
@@ -107,6 +128,7 @@ void reshape(GLint w, GLint h) {
 // enters the main event loop.
 int main(int argc, char **argv) {
   init_mem();
+  cfg = kiss_fft_alloc(1024, 0, NULL, NULL);
   engine_status status = engine_init();
   if (status != ENGINE_OK) {
     fprintf(stderr, "Engine failed to start with status %d", status);
