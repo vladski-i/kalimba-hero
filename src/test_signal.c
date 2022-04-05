@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <jack/types.h>
 
 #include "proc.h"
 
