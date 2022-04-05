@@ -6,7 +6,9 @@
 #include <stdlib.h>
 
 #include "engine.h"
+#include "kiss_fft.h"
 #include "mem.h"
+#include "proc.h"
 #include "types.h"
 
 // Assume no more than 16 concurrent notes can play at a single time
@@ -20,11 +22,14 @@ typedef struct client_data_s {
   jack_ringbuffer_t *audio_data;
   pitch mock_note;
   uint32_t period;
+  jack_default_audio_sample_t *hamming_win; // precomputed to save time
 } client_data;
 
 static jack_client_t *client;
 static jack_port_t *input_port;
 static client_data *data;
+float *poll_data;
+static kiss_fft_cfg cfg;
 
 static void jack_shutdown(void *arg) {
   end_mem();
@@ -38,6 +43,12 @@ static int process_callback(jack_nframes_t nframes, void *arg) {
                         1 * sizeof(pitch));
   jack_default_audio_sample_t *window =
       (jack_default_audio_sample_t *)jack_port_get_buffer(input_port, nframes);
+  kiss_fft_cpx *time_samples = alloc(1024, sizeof(kiss_fft_cpx));
+  kiss_fft_cpx *spectrum = alloc(1024, sizeof(kiss_fft_cpx));
+  for (uint i = 0; i < nframes; i++)
+    time_samples[i].r =
+        window[i] * (0.54 - 0.46 * cos((2.0f * M_PI * i) / 1023));
+  kiss_fft(cfg, time_samples, spectrum);
   jack_ringbuffer_write(data->audio_data, (char *)window, nframes * 4);
   data->period = (data->period + 1) % 30;
   if (!data->period) {
@@ -48,7 +59,13 @@ static int process_callback(jack_nframes_t nframes, void *arg) {
 
 // initialize jack client and port
 engine_status engine_init() {
+  cfg = kiss_fft_alloc(WINSIZE, 0, NULL, NULL);
+  poll_data = alloc(WINSIZE, sizeof(float));
   data = alloc(1, sizeof(client_data));
+  data->hamming_win = alloc(WINSIZE, sizeof(jack_default_audio_sample_t));
+  for (uint i = 0; i < WINSIZE; i++) {
+    data->hamming_win[i] = 0.54 - 0.46 * cos((2 * M_PI * i) / (WINSIZE - 1));
+  }
   data->rb = jack_ringbuffer_create(MAX_CONCURRENT_NOTES * sizeof(pitch) +
                                     1); // +1 for the end byte
   // Allocate a windows' worth of audio data
@@ -97,6 +114,7 @@ engine_status engine_start() {
 
 // poll the RT thread for currently playing notes
 pitch *engine_poll_notes(uint32_t *notes_read) {
+  // printf("engine_poll_notes()\n");
   pitch *current_notes = alloc(MAX_CONCURRENT_NOTES, sizeof(pitch));
   uint32_t bytes_read = jack_ringbuffer_read(
       data->rb, (char *)current_notes, MAX_CONCURRENT_NOTES * sizeof(pitch));
@@ -108,6 +126,7 @@ pitch *engine_poll_notes(uint32_t *notes_read) {
 }
 
 float *engine_poll_data(uint32_t *samples_no) {
+  // printf("engine_poll_data()\n");
   float *bytes = alloc(WINSIZE, sizeof(float));
   uint32_t bytes_read = jack_ringbuffer_read(data->audio_data, (char *)bytes,
                                              WINSIZE * sizeof(float));
