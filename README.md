@@ -23,4 +23,7 @@ You need OpenGL, GLUT, GLFW and `libjack-jackd2-dev` on your system
 
 - cd to /.../kalimba-hero/midi-parser
 - run `make` (so the simlink in `kalimba-hero/lib` resolves)
+- cd to /.../kalimba-hero/kissfft
+- run `make` (so the simlink in `kalimba-hero/lib` resolves)
+- ensure that LD_LIBRARY_PATH contains /.../kalimba-hero/lib
 - run `make` in kalimba-hero
