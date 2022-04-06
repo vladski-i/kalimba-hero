@@ -9,6 +9,7 @@ static uint32_t current_index;
 
 void init_mem() { ptrs = calloc(current_size, sizeof(void *)); }
 
+//TODO: implementation segfaults on program exit
 void end_mem() {
     for (uint32_t i = 0; i < current_index; i++) {
         free(ptrs[i]);

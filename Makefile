@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-g -lGL -lglut -lGLU -L/usr/local/lib -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lncurses -ljack -I./include/ -L ./lib/ -Wall -pedantic
+CFLAGS=-g -L./lib/ -l:libkissfft-float.so.131 -lGL -lglut -lGLU -L/usr/local/lib -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lncurses -ljack -I./include/ -Wall -pedantic
 
 _DEPS = main.c draw_util.c midi_read.c tui.c mem.c engine_jack.c proc.c
 DEPS = $(patsubst %,$(DDIR)/%,$(_DEPS))
@@ -22,6 +22,7 @@ TEST_OBJ = $(patsubst %,$(ODIR)/%,$(_TEST_OBJ))
 
 $(ODIR)/%.o: $(DDIR)/%.c $(DEPS)
 	$(CC) -c -o $@ $< $(CFLAGS)
+
 
 khero: $(OBJ) $(INC)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIB)
