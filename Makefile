@@ -1,11 +1,11 @@
 CC=gcc
 CFLAGS=-g -L./lib/ -l:libkissfft-float.so.131 -lGL -lglut -lGLU -L/usr/local/lib -lglfw3 -lrt -lm -ldl -lX11 -lpthread -lxcb -lXau -lXdmcp -lncurses -ljack -I./include/ -Wall -pedantic
 
-_DEPS = main.c draw_util.c midi_read.c tui.c mem.c engine_jack.c proc.c
+_DEPS = main.c draw_util.c midi_read.c tui.c mem.c engine_jack.c proc.c comb.c
 DEPS = $(patsubst %,$(DDIR)/%,$(_DEPS))
 DDIR = src
 
-_OBJ = main.o draw_util.o midi_read.o tui.o mem.o engine_jack.o proc.o
+_OBJ = main.o draw_util.o midi_read.o tui.o mem.o engine_jack.o proc.o comb.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 ODIR = obj
 
