@@ -17,6 +17,23 @@
 
 extern uint64_t time_in_frames;
 
+// function that rescales a float array to fit between 0 and 1
+static float *rescale(float *array, uint32_t n) {
+  float min = array[0];
+  float max = array[0];
+  for (uint i = 0; i < n; i++) {
+    if (array[i] < min)
+      min = array[i];
+    if (array[i] > max)
+      max = array[i];
+  }
+  float *rescaled = alloc(n, sizeof(float));
+  for (uint i = 0; i < n; i++) {
+    rescaled[i] = (array[i] - min) / (max - min);
+  }
+  return rescaled;
+}
+
 static note_status drawCircle(float cx, float cy, float radius,
                               int num_segments) {
   if (cy > threshold) {
@@ -152,10 +169,10 @@ void boxed_graph(float *samples, uint32_t samples_no, float xmin, float xmax,
 
   glColor3f(1, 0, 0);
   for (uint i = 0; i < samples_no; i++) {
-    if (samples[i] * 10 > 1) // clamp values to 1
-      samples[i] = 0.1;
-    if (samples[i] * 10 < -1)
-      samples[i] = -0.1;
+    if (samples[i] * 10 > 0.5) // clamp values to 1
+      samples[i] = 0.05;
+    else if (samples[i] * 10 < -0.5)
+      samples[i] = -0.05;
     glBegin(GL_LINES);
     // printf("Drawing line : %.3f  %.3f %.3f\n", 1.0f * i * line_width,
     //        bottom + samples[i] * 10, 0.0);
@@ -175,22 +192,7 @@ static float *log10_array(uint32_t n) {
   return array;
 }
 
-// function that rescales a float array to fit between 0 and 1
-float *rescale(float *array, uint32_t n) {
-  float min = array[0];
-  float max = array[0];
-  for (uint i = 0; i < n; i++) {
-    if (array[i] < min)
-      min = array[i];
-    if (array[i] > max)
-      max = array[i];
-  }
-  float *rescaled = alloc(n, sizeof(float));
-  for (uint i = 0; i < n; i++) {
-    rescaled[i] = (array[i] - min) / (max - min);
-  }
-  return rescaled;
-}
+
 
 void kiss_log_scale_boxed_graph(kiss_fft_cpx *samples, uint32_t samples_no, float xmin,
                       float xmax, float up, float down) {
@@ -204,22 +206,16 @@ void kiss_log_scale_boxed_graph(kiss_fft_cpx *samples, uint32_t samples_no, floa
 
   float *log_scale = rescale(log10_array(samples_no), samples_no);
   glColor3f(1, 0, 0);
-  glBegin(GL_LINES);
-  glVertex3f(xmin + 1.0f * log_scale[0] , down, 0.0);
+  glBegin(GL_LINE_STRIP);
   for (uint i = 0; i < samples_no; i++) {
-    // glVertex3f(xmin + 1.0f * log_scale[i] , down, 0.0);
+    float mag = fabs(samples[i].r * samples[i].r + samples[i].i * samples[i].i);
+    mag = mag > 10 ? 10 : mag;
+    mag = mag / 10;
     glVertex3f(xmin + 1.0f * log_scale[i] ,
-               down + fabs((samples[i].r * samples[i].r -
-                            samples[i].i * samples[i].i)),
-               0.0);
-    glVertex3f(xmin + 1.0f * log_scale[i] ,
-               down + fabs((samples[i].r * samples[i].r -
-                            samples[i].i * samples[i].i)),
+               down + mag,
                0.0);
   }
-  glVertex3f(xmin + 1.0f * log_scale[samples_no - 1] , down, 0.0);
   glEnd();
-
   return;
 }
 

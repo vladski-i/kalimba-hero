@@ -43,6 +43,8 @@ uint32_t old_samples_no;
 
 kiss_fft_cfg cfg;
 
+float max_spec = 0.0;
+
 void display() {
   // printf("display()\n");
   // Set every pixel in the frame buffer to the current clear color.
@@ -81,13 +83,22 @@ void display() {
   if (drawable_audio) {
     kiss_fft_cpx *time_samples = alloc(1024, sizeof(kiss_fft_cpx));
     kiss_fft_cpx *spectrum = alloc(1024, sizeof(kiss_fft_cpx));
-    for (uint i = 0; i < drawable_sample_count; i++)
+    for (uint i = 0; i < drawable_sample_count; i++){
       time_samples[i].r =
           drawable_audio[i] * (0.54 - 0.46 * cos((2.0f * M_PI * i) / 1023));
+      time_samples[i].i = 0;
+    }
     kiss_fft(cfg, time_samples, spectrum);
+    for (uint i = 0; i < 1024; i++) {
+      float mag = fabs(spectrum[i].r * spectrum[i].r +
+                       spectrum[i].i * spectrum[i].i);
+      if (mag > max_spec) {
+        max_spec = mag;
+      }
+    }
     kiss_log_scale_boxed_graph(spectrum, drawable_sample_count / 2, -1.97, -1.03, -1, -1);
   }
-  boxed_graph(drawable_audio, drawable_sample_count, -1.97, -1.03, -1, 0);
+  boxed_graph(drawable_audio, drawable_sample_count, -1.97, -1.03, -1, 0.5);
 
   // draw supporting infrastructure
   drawTines();
@@ -105,9 +116,10 @@ void timer(int v) {
   gettimeofday(&current, NULL);
   uint64_t current_usec = current.tv_sec * 1000000 + current.tv_usec;
   time_in_frames = ((current_usec - start_usec) / 1000000.0) * 60;
-  if (time_in_frames % 60 == 0)
+  if (time_in_frames % 60 == 0){
     printf("time_in_frames is %ld\n", time_in_frames);
-
+    printf("max_spec is %f\n", max_spec);
+  }
   // trigger redisplay function
   glutPostRedisplay();
   // set the timer for one frame in the future (@60fps)
