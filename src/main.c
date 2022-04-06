@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/time.h>
+#include <sys/types.h>
 
 #define CONSTANTS_IMPL
 #include "constants.h"
@@ -19,6 +20,7 @@
 #include "midi_read.h"
 #include "proc.h"
 #include "tui.h"
+#include "comb.h"
 
 // clock in ms
 uint64_t time_in_frames = 0;
@@ -41,9 +43,13 @@ uint32_t note_index = 0;
 float *old_audio;
 uint32_t old_samples_no;
 
+bool *old_activations;
+
 kiss_fft_cfg cfg;
 
 float max_spec = 0.0;
+
+comb *test_comb;
 
 void display() {
   // printf("display()\n");
@@ -64,8 +70,17 @@ void display() {
   }
   uint32_t notes_no = 0;
   uint32_t samples_no = 0;
+  uint32_t triggers_no = 0;
   pitch *notes = engine_poll_notes(&notes_no);
   float *audio_data = engine_poll_data(&samples_no);
+  bool *activations = engine_poll_triggers(&triggers_no);
+  bool color = false;
+  if (!activations){
+    activations = old_activations;
+  }
+  else{
+    old_activations = activations;
+  }
   draw_current_notes(notes, notes_no);
   float *drawable_audio = NULL;
   float drawable_sample_count = 0;
@@ -96,7 +111,9 @@ void display() {
         max_spec = mag;
       }
     }
-    kiss_log_scale_boxed_graph(spectrum, drawable_sample_count / 2, -1.97, -1.03, -1, -1);
+    printf("Tooth is activated %d\n", activations[0]);
+    kiss_log_scale_boxed_graph(spectrum, drawable_sample_count / 2, -1.97, -1.05, -1, -1);
+    log_scale_sparse_boxed_graph(test_comb->n, drawable_sample_count / 2, test_comb->teeth, test_comb->thresh,-1.97, -1.05, -1, -1, activations[0]);
   }
   boxed_graph(drawable_audio, drawable_sample_count, -1.97, -1.03, -1, 0.5);
 
@@ -118,7 +135,7 @@ void timer(int v) {
   time_in_frames = ((current_usec - start_usec) / 1000000.0) * 60;
   if (time_in_frames % 60 == 0){
     printf("time_in_frames is %ld\n", time_in_frames);
-    printf("max_spec is %f\n", max_spec);
+    // printf("max_spec is %f\n", max_spec);
   }
   // trigger redisplay function
   glutPostRedisplay();
@@ -140,8 +157,10 @@ void reshape(GLint w, GLint h) {
 // enters the main event loop.
 int main(int argc, char **argv) {
   init_mem();
+  test_comb = from_file("assets/combs/test.comb");
+  display_comb(test_comb);
   cfg = kiss_fft_alloc(1024, 0, NULL, NULL);
-  engine_status status = engine_init();
+  engine_status status = engine_init(&test_comb, 1);
   if (status != ENGINE_OK) {
     fprintf(stderr, "Engine failed to start with status %d", status);
     end_mem();
