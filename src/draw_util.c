@@ -17,19 +17,22 @@
 
 extern uint64_t time_in_frames;
 
-// function that rescales a float array to fit between 0 and 1
-static float *rescale(float *array, uint32_t n) {
+// function that rescales a float array to fit between a and b
+static float *rescale(float *array, uint32_t n, float a, float b){
   float min = array[0];
   float max = array[0];
-  for (uint i = 0; i < n; i++) {
-    if (array[i] < min)
+  for (int i = 1; i < n; i++) {
+    if (array[i] < min) {
       min = array[i];
-    if (array[i] > max)
+    }
+    if (array[i] > max) {
       max = array[i];
+    }
   }
+  float range = max - min;
   float *rescaled = alloc(n, sizeof(float));
-  for (uint i = 0; i < n; i++) {
-    rescaled[i] = (array[i] - min) / (max - min);
+  for (int i = 0; i < n; i++) {
+    rescaled[i] = (array[i] - min) / range * (b - a) + a;
   }
   return rescaled;
 }
@@ -151,20 +154,12 @@ void boxed_graph(float *samples, uint32_t samples_no, float xmin, float xmax,
                  float up, float down) {
   glColor3f(1, 0, 0);
 
-  //   glRectf(top_left, up, top_right, 0);
   float line_width = (xmax - xmin) / samples_no;
   glBegin(GL_LINES);
-  // glVertex3f(top_left, up, 0);
-  // glVertex3f(top_right, up, 0);
-
-  // glVertex3f(top_right, up, 0);
-  // glVertex3f(top_right, bottom, 0);
 
   glVertex3f(xmax, down, 0);
   glVertex3f(xmin, down, 0);
 
-  //   glVertex3f(top_left, bottom, 0);
-  //   glVertex3f(top_left, up, 0);
   glEnd();
 
   glColor3f(1, 0, 0);
@@ -174,8 +169,6 @@ void boxed_graph(float *samples, uint32_t samples_no, float xmin, float xmax,
     else if (samples[i] * 10 < -0.5)
       samples[i] = -0.05;
     glBegin(GL_LINES);
-    // printf("Drawing line : %.3f  %.3f %.3f\n", 1.0f * i * line_width,
-    //        bottom + samples[i] * 10, 0.0);
     glVertex3f(xmin + 1.0f * i * line_width, down, 0.0);
     glVertex3f(xmin + 1.0f * i * line_width, down + samples[i] * 10, 0.0);
     glEnd();
@@ -198,20 +191,19 @@ void kiss_log_scale_boxed_graph(kiss_fft_cpx *samples, uint32_t samples_no, floa
                       float xmax, float up, float down) {
   glColor3f(1, 0, 0);
 
-  float line_width = (xmax - xmin) / samples_no;
   glBegin(GL_LINES);
   glVertex3f(xmax, down, 0);
   glVertex3f(xmin, down, 0);
   glEnd();
 
-  float *log_scale = rescale(log10_array(samples_no), samples_no);
+  float *log_scale = rescale(log10_array(samples_no), samples_no, xmin, xmax);
   glColor3f(1, 0, 0);
   glBegin(GL_LINE_STRIP);
   for (uint i = 0; i < samples_no; i++) {
-    float mag = fabs(samples[i].r * samples[i].r + samples[i].i * samples[i].i);
+    float mag = fabs(samples[i].r * samples[i].r - samples[i].i * samples[i].i);
     mag = mag > 10 ? 10 : mag;
     mag = mag / 10;
-    glVertex3f(xmin + 1.0f * log_scale[i] ,
+    glVertex3f(log_scale[i] ,
                down + mag,
                0.0);
   }
@@ -219,3 +211,21 @@ void kiss_log_scale_boxed_graph(kiss_fft_cpx *samples, uint32_t samples_no, floa
   return;
 }
 
+void log_scale_sparse_boxed_graph(int n, int samples_no, uint *indices, float *magnitudes, float xmin, float xmax, float up, float down, bool alternate_color) {
+  if (!alternate_color)
+    glColor3f(1, 1, 0);
+  else
+   glColor3f(0, 1, 0);
+  float *log_scale = rescale(log10_array(samples_no), samples_no, xmin, xmax);
+  for (uint i = 0; i < n; i ++){
+    float mag = magnitudes[i];
+    mag = mag > 10 ? 10 : mag;
+    mag = mag / 10;
+    float idx = log_scale[indices[i]];
+    glBegin(GL_LINES);
+    // printf("drawing line of length %f at %f\n", mag, idx);
+    glVertex3f(idx, down , 0.0);
+    glVertex3f(idx, down + mag, 0.0);
+    glEnd();
+  }
+}
