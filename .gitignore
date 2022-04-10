@@ -6,3 +6,5 @@ assets/midi/*
 data.txt
 dft
 test
+valgrind.txt
+kissfft

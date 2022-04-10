@@ -14,5 +14,8 @@ tine *setup_tines();
 void boxed_graph(float *samples, uint32_t samples_no, float left, float right,
                  float up, float down);
 void kiss_log_scale_boxed_graph(kiss_fft_cpx *samples, uint32_t samples_no, float left,
-                      float right, float up, float down);
+                 float right, float up, float down);
+void log_scale_sparse_boxed_graph(int n, int samples_no, uint *indices, float *magnitudes,
+                 float xmin, float xmax, float up, float down, bool alternate_color);
+
 #endif
