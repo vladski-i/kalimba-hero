@@ -74,7 +74,6 @@ void display() {
   pitch *notes = engine_poll_notes(&notes_no);
   float *audio_data = engine_poll_data(&samples_no);
   bool *activations = engine_poll_triggers(&triggers_no);
-  bool color = false;
   if (!activations){
     activations = old_activations;
   }
@@ -163,7 +162,7 @@ int main(int argc, char **argv) {
   cfg = kiss_fft_alloc(1024, 0, NULL, NULL);
   engine_status status = engine_init(&test_comb, 1);
   if (status != ENGINE_OK) {
-    fprintf(stderr, "Engine failed to start with status %d", status);
+    fprintf(stderr, "Engine failed to initialize with status %d", status);
     end_mem();
     exit(1);
   }
@@ -241,8 +240,7 @@ int main(int argc, char **argv) {
   gettimeofday(&start, NULL);
   start_usec = start.tv_sec * 1000000 + start.tv_usec;
 
-  // before starting the main loop, start the engine client's process callback
-  // function
+  // before starting the main loop, start the engine client's process callback function
   if (engine_start() != ENGINE_STARTED) {
     fprintf(stderr, "Failed to start engine\n");
     end_mem();
@@ -252,6 +250,13 @@ int main(int argc, char **argv) {
   // Start the main loop
   glutMainLoop();
   printf("Main loop ended\n");
+
+  //stop the engine before clearing memory to avoid segfault
+  if (engine_stop() != ENGINE_STOPPED) {
+    fprintf(stderr, "Failed to stop engine\n");
+    end_mem();
+    exit(1);
+  }
   // clear memory before exiting
   end_mem();
   return 0;
