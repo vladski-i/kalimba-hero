@@ -165,3 +165,15 @@ float *engine_poll_data(uint32_t *samples_no) {
   *samples_no = bytes_read / sizeof(float);
   return bytes;
 }
+
+engine_status engine_stop() {
+  if (jack_deactivate(client)) {
+    fprintf(stderr, "Failed to deactivate jack client\n");
+    return ENGINE_ERROR;
+  }
+  if(jack_client_close(client)) {
+    fprintf(stderr, "Failed to close jack client\n");
+    return ENGINE_ERROR;
+  }
+  return ENGINE_STOPPED;
+}
