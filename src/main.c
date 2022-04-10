@@ -111,7 +111,8 @@ void display() {
         max_spec = mag;
       }
     }
-    printf("Tooth is activated %d\n", activations[0]);
+    if(activations[0])
+      printf("Tooth is activated %d\n", activations[0]);
     kiss_log_scale_boxed_graph(spectrum, drawable_sample_count / 2, -1.97, -1.05, -1, -1);
     log_scale_sparse_boxed_graph(test_comb->n, drawable_sample_count / 2, test_comb->teeth, test_comb->thresh,-1.97, -1.05, -1, -1, activations[0]);
   }
