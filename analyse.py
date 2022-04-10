@@ -17,11 +17,12 @@ plt.figure()
 plt.plot(data)
 plt.show()
 
-for win in wins:
+for idx,win in enumerate(wins):
     plt.figure()
+    print(idx, list(win))
     d = abs(fft(win))
     d = d[:len(d) // 2]
-    d = list(map(lambda x: x if x > 0.5 * 10 ** 6 else 0, d))
+    # d = list(map(lambda x: x if x > 0.5 * 10 ** 6 else 0, d))
     plt.plot(d)
     plt.show()
 
