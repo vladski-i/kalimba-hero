@@ -19,6 +19,7 @@ void init_mem() { ptrs = calloc(current_size, sizeof(res)); }
 void end_mem() {
     for (uint32_t i = 0; i < current_index; i++) {
         ptrs[i]->free_fn(ptrs[i]->ptr);
+        free(ptrs[i]);
     }
     free(ptrs);
 }
