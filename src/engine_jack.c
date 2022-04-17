@@ -79,12 +79,14 @@ engine_status engine_init(comb **comb_arr, uint32_t comb_arr_len) {
   for (uint i = 0; i < WINSIZE; i++) {
     data->hamming_win[i] = 0.54 - 0.46 * cos((2 * M_PI * i) / (WINSIZE - 1));
   }
-  data->rb = jack_ringbuffer_create(MAX_CONCURRENT_NOTES * sizeof(pitch) +
-                                    1); // +1 for the end byte
-  data->trigger_activations = jack_ringbuffer_create(comb_arr_len * sizeof(bool) + 1);
+  data->rb = jack_ringbuffer_create(MAX_CONCURRENT_NOTES * sizeof(pitch) + 1); // +1 for the end byte
+  data->trigger_activations = jack_ringbuffer_create(comb_arr_len * sizeof(bool) + 1); // +1 for the end byte
   // Allocate a windows' worth of audio data
-  data->audio_data = jack_ringbuffer_create(
-      WINSIZE * sizeof(jack_default_audio_sample_t) + 1); // +1 for the end byte
+  data->audio_data = jack_ringbuffer_create(WINSIZE * sizeof(jack_default_audio_sample_t) + 1); // +1 for the end byte
+  // Add all ringbuffers to memory tracker
+  alloc_res(data->rb, (void (*)(void *))&jack_ringbuffer_free);
+  alloc_res(data->trigger_activations, (void (*)(void *))&jack_ringbuffer_free);
+  alloc_res(data->audio_data, (void (*)(void *))&jack_ringbuffer_free);
   data->mock_note = 0;
   jack_options_t options = JackNullOption;
   jack_status_t status;
